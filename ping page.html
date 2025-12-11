@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ping URL Manager – Hacker Console</title>
+
+    <style>
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #00ff00;
+            text-shadow: 0 0 8px #00ff00;
+        }
+
+        #container {
+            max-width: 700px;
+            margin: auto;
+            background: rgba(0, 40, 0, 0.4);
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ff00;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: black;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            border-radius: 6px;
+            outline: none;
+            margin-top: 10px;
+            font-family: 'Courier New';
+        }
+
+        input:focus {
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        ::placeholder {
+            color: #00ff00aa;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: black;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            font-size: 18px;
+            font-family: 'Courier New';
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.2s;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        button:hover {
+            background: #003300;
+            box-shadow: 0 0 12px #00ff00;
+        }
+
+        .url-box {
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 80, 0, 0.3);
+            box-shadow: 0 0 12px #00ff00;
+        }
+
+        .delete-btn {
+            padding: 6px 12px;
+            border: 1px solid #ff0000;
+            background: black;
+            color: #ff0000;
+            border-radius: 4px;
+            font-family: 'Courier New';
+            cursor: pointer;
+            text-shadow: 0 0 4px #ff0000;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #330000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        /* Flickering Green Text Animation */
+        @keyframes flicker {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        h2 {
+            animation: flicker 1.5s infinite;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="container">
+        <h2>☣ PING URL MANAGER</h2>
+
+        <input type="text" id="urlInput" placeholder="Enter URL to add →">
+        <button onclick="addUrl()">ADD URL</button>
+
+        <h3 style="text-shadow:0 0 5px #00ff00;">Saved URLs:</h3>
+        <div id="urlList"></div>
+    </div>
+
+    <!-- Firebase Libs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+    <script>
+        // -------------------------------------------------------
+        // 🔥 YOUR FIREBASE CONFIG HERE (Replace All Values)
+        // -------------------------------------------------------
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOdb4tLVXsEIBxEGcLJUI4EPWfz_9Ztow",
+            authDomain: "ping-pulse.firebaseapp.com",
+            databaseURL: "https://ping-pulse-default-rtdb.firebaseio.com",
+            projectId: "ping-pulse",
+            storageBucket: "ping-pulse.firebasestorage.app",
+            messagingSenderId: "924312550788",
+            appId: "1:924312550788:web:06c7e97e2b541155e0f1d1",
+            measurementId: "G-X7MFZHFEG7"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const urlListDiv = document.getElementById("urlList");
+
+        // -------------------------------------------------------
+        // Load URLs
+        // -------------------------------------------------------
+        function loadUrls() {
+            db.ref("ping_urls").on("value", snapshot => {
+                urlListDiv.innerHTML = "";
+
+                snapshot.forEach(child => {
+                    const key = child.key;
+                    const url = child.val();
+
+                    const div = document.createElement("div");
+                    div.className = "url-box";
+
+                    div.innerHTML = `
+                    <span>${url}</span>
+                    <button class="delete-btn" onclick="deleteUrl('${key}')">DELETE</button>
+                `;
+
+                    urlListDiv.appendChild(div);
+                });
+            });
+        }
+
+        loadUrls();
+
+        // -------------------------------------------------------
+        // Add URL
+        // -------------------------------------------------------
+        function addUrl() {
+            const url = document.getElementById("urlInput").value.trim();
+            if (url === "") {
+                alert("Enter URL first!");
+                return;
+            }
+
+            const newKey = db.ref("ping_urls").push().key;
+            db.ref("ping_urls/" + newKey).set(url);
+
+            document.getElementById("urlInput").value = "";
+        }
+
+        // -------------------------------------------------------
+        // Delete URL
+        // -------------------------------------------------------
+        function deleteUrl(key) {
+            db.ref("ping_urls/" + key).remove();
+        }
+    </script>
+
+</body>
+
+</html>
